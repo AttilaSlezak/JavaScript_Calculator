@@ -146,3 +146,7 @@ html {
 	 top: 4px;
 	 box-shadow: 0px 0px #D3545D;
  }
+ 
+#fact {
+	text-align: center;
+}

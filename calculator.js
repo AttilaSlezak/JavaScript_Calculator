@@ -2,12 +2,14 @@
 var keys = document.querySelectorAll('#calculator span');
 var operators = ['+', '-', 'x', '÷']
 var decimalAdded = false;
+var input = document.querySelector('.screen');
+var factField = document.getElementById('fact');
 
 // Add onclick event to all the keys and perform operations
 for (var i = 0; i < keys.length; i++) {
 	keys[i].onclick = function(e) {
 		// Get the input and button values
-		var input = document.querySelector('.screen');
+		//var input = document.querySelector('.screen');
 		var inputVal = input.innerHTML;
 		var btnVal = this.innerHTML;
 		
@@ -17,6 +19,7 @@ for (var i = 0; i < keys.length; i++) {
 		// If clear key is pressed, erase everything
 		if (btnVal == 'C') {
 			input.innerHTML = '';
+			factField.innerHTML = 'You can read interesting facts about numbers in this field.';
 			decimalAdded = false;
 		}
 		
@@ -37,6 +40,7 @@ for (var i = 0; i < keys.length; i++) {
 			
 			if (equation)
 				input.innerHTML = eval(equation);
+				getFact();
 			
 			decimalAdded = false;
 		}
@@ -93,5 +97,42 @@ for (var i = 0; i < keys.length; i++) {
 		
 		// Prevent page jumps
 		e.preventDefault();
+	}
+}
+
+var request;
+
+function getFact() {
+	var number = input.innerHTML;
+	
+	if (input.innerHTML.indexOf('.') > -1) {
+		factField.innerHTML = "There is not any facts available about decimal numbers.";
+		return;
+	}
+	
+	if (window.XMLHttpRequest) {
+		request = new XMLHttpRequest();
+	}
+	else {
+		request = new ActiveXObject('Microsoft.XMLHTTP');
+	}
+	
+	request.onreadystatechange = writeFact;
+	request.open('GET', 'http://numbersapi.com/' + number + '?json');
+	request.send();
+}
+
+function writeFact() {
+	if (request.readyState == XMLHttpRequest.DONE) {
+		if (request.status == 200) {
+			var response = request.responseText;
+			factField.innerHTML = JSON.parse(response).text;
+		}
+		else {
+			factField.innerHTML = "There is no response from the server...";
+		}
+	}
+	else {
+		factField.innerHTML = "Please wait...";
 	}
 }
