@@ -139,8 +139,8 @@ function threatNumberSystems() {
 	var resultScreen = "";
 	
 	for (var i = 0; i < screen.length; i++) {
-		if (isNaN(screen[i]) && screen[i] !== '.') {
-			numbersAndOperators.push(Number(currentNum));
+		if (isNaN(screen[i]) && screen[i] !== '.' && hexaLetters.indexOf(screen[i]) === -1) {
+			numbersAndOperators.push(currentNum);
 			numbersAndOperators.push(screen[i]);
 			currentNum = "";
 		}
@@ -150,11 +150,13 @@ function threatNumberSystems() {
 	}
 	
 	if (currentNum) {
-		numbersAndOperators.push(Number(currentNum));
+		numbersAndOperators.push(currentNum);
 	}
 		
 	for (var i = 0; i < numbersAndOperators.length; i++) {
-		if (isNaN(numbersAndOperators[i])) {
+		var pattern = new RegExp('^[A-F0-9]+$');
+		
+		if (!pattern.test(numbersAndOperators[i])) {
 			resultScreen += numbersAndOperators[i];
 		}
 		else {
@@ -163,6 +165,13 @@ function threatNumberSystems() {
 			}
 			else if (numSystem === 'octal' && currentNumSystem === 'decimal') {
 				resultScreen += changeDecToOther(numbersAndOperators[i], 8);
+			}
+			else if (numSystem === 'hexa' && currentNumSystem === 'decimal') {
+				resultScreen += changeDecToOther(numbersAndOperators[i], 16);
+			}
+			else if ((currentNumSystem === 'binary' || currentNumSystem === 'octal' || currentNumSystem === 'hexa') 
+				&& numSystem == 'decimal') {
+				resultScreen += changeOtherToDec(numbersAndOperators[i]);
 			}
 			else if (currentNumSystem !== numSystem 
 				&& (currentNumSystem === 'binary' || currentNumSystem === 'octal' || currentNumSystem === 'hexa')
@@ -204,7 +213,12 @@ function changeDecToOther(number, numsys) {
 	while (integer != 0) {
 		if (integer % numsys > 0) {
 			var remainder = integer % numsys
-			result = remainder + result;
+			if (remainder > 9) {
+				result = hexaLetters[remainder - 10] + result;
+			}
+			else {
+				result = remainder + result;
+			}
 			integer = (integer - remainder) / numsys;
 		}
 		else {
@@ -223,7 +237,12 @@ function changeDecToOther(number, numsys) {
 				if (!intPart) {
 					intPart = decimal;
 				}
-				result += intPart;
+				if (intPart > 9) {
+					result += hexaLetters[intPart - 10];
+				}
+				else {
+					result += intPart;
+				}
 				decimal -= intPart;
 			}
 			else {
@@ -237,11 +256,10 @@ function changeDecToOther(number, numsys) {
 function changeInterBinOctHex(number, numsys) {
 	var result = '';
 	var resultPart = 0;
-	var numberOfDigits;
+	var numberOfDigits = numsys === 'hexa' ? 4 : 3;
 	number = number.toString();
 	
 	if (currentNumSystem === 'binary') {
-		numberOfDigits = numsys === 'hexa' ? 4 : 3;
 		var currentNumPartLong;
 		
 		for (var i = 0; i < number.length; i++) {
@@ -289,11 +307,71 @@ function changeInterBinOctHex(number, numsys) {
 			result += resultPart;
 		}
 	}
+	
+	else {
+		for (var i = 0; i < number.length; i++) {
+		
+			if (hexaLetters.indexOf(number[i].toString()) > -1) {
+				resultPart = hexaLetters.indexOf(number[i]) + 10;
+			}
+			else {
+				resultPart = number[i];
+			}
+			
+			resultPart = changeDecToOther(resultPart, 2);
+			
+			while (i > 0 && resultPart.toString().length <= numberOfDigits) {
+				resultPart = '0' + resultPart;
+			}
+		
+			result += resultPart;
+		}
+	}
 	return result;	
 }
 
 function changeOtherToDec(number) {
+	var result = 0;
+	var integer;
+	var decimal;
+	var numSys;
 	
+	if (currentNumSystem === 'binary') {
+		numSys = 2;
+	}
+	else if (currentNumSystem === 'octal') {
+		numSys = 8;
+	}
+	else {
+		numSys = 16;
+	}
+	
+	if (number.toString().indexOf('.') > -1) {
+		number = number.toString();
+		integer = number.substr(0, number.indexOf('.'));
+		decimal = '0.' + number.substr(number.indexOf('.') + 1);
+	}
+	else {
+		integer = number;
+	}
+	
+	for (var i = 0; i < integer.length; i++) {
+		if (hexaLetters.indexOf(integer[i]) > -1) {
+			result += (hexaLetters.indexOf(integer[i]) + 10) * Math.pow(numSys, integer.substr(i).length - 1);
+		}
+		else {
+			result += integer[i] * Math.pow(numSys, integer.substr(i).length - 1);
+		}
+	}
+	
+	if (decimal) {
+		result += '.';
+	
+		for (var i = 0; i < decimal.length; i++) {
+			result += integer[i] * Math.pow(numSys, i + 1 * - 1);
+		}
+	} 
+	return result;
 }
 
 function changeDisabledKeyColor() {
