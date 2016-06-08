@@ -9,12 +9,27 @@
 	<div id="calculator">
 		<!-- Screen and clear key -->
 		<div class="top">
-			<span class="clear">C</span>
+			<span id="clear" class="clear">C</span>
 			<div class="screen"></div>
 		</div>
 		
 		<div class="keys">
 			<!-- operators and other keys -->
+			<form id="radiobtns">
+				<div class="radiobtn">
+					<input type="radio" id="request" name="request" value="result" checked />Request result<br />
+					<input type="radio" id="request" name="request" value="batch" />Batch requests
+				</div>
+				<div id="verticalLine"></div>
+				<div class="radiobtn">
+					<input type="radio" id="numsystem" name="numsystem" value="binary" />Binary<br />
+					<input type="radio" id="numsystem" name="numsystem" value="octal" />Octal
+				</div>
+				<div class="radiobtn">
+					<input type="radio" id="numsystem" name="numsystem" value="decimal" checked />Decimal<br />
+					<input type="radio" id="numsystem" name="numsystem" value="hexa" />Hexa
+				</div>
+			</form>
 			<span>7</span>
 			<span>8</span>
 			<span>9</span>

@@ -1,36 +1,29 @@
-﻿// Get all the keys from document
-var keys = document.querySelectorAll('#calculator span');
+﻿var keys = document.querySelectorAll('#calculator span');
 var operators = ['+', '-', 'x', '÷']
 var decimalAdded = false;
 var input = document.querySelector('.screen');
 var factField = document.getElementById('fact');
+var radioBtns = document.querySelectorAll('#calculator input');
+var disabledBtns = '';
+var currentNumSystem = 'decimal';
+var hexaLetters = ['A', 'B', 'C', 'D', 'E', 'F']
 
-// Add onclick event to all the keys and perform operations
 for (var i = 0; i < keys.length; i++) {
 	keys[i].onclick = function(e) {
-		// Get the input and button values
-		//var input = document.querySelector('.screen');
 		var inputVal = input.innerHTML;
 		var btnVal = this.innerHTML;
-		
-		// Now, just append the key values (btnValue) to the input string and
-		//finally use javascript's eval function to get the result
-		
-		// If clear key is pressed, erase everything
+				
 		if (btnVal == 'C') {
 			input.innerHTML = '';
 			factField.innerHTML = 'You can read interesting facts about numbers in this field.';
 			decimalAdded = false;
 		}
 		
-		// If eval key is pressed, calculate and display the result
 		else if (btnVal == '=') {
 			var equation = inputVal;
 			var lastChar = equation[equation.length - 1];
 			
-			// Replace all instances of x and ÷ with * and / respectively. This
-			// can be done easily using regex and the 'g' tag which will replace all
-			// instances of the matched characters/substring
+			// Replace all instances of x and ÷ with * and / respectively
 			equation = equation.replace(/x/g, '*').replace(/÷/g, '/');
 			
 			// Final thing left to do is checking the last character of the
@@ -44,14 +37,6 @@ for (var i = 0; i < keys.length; i++) {
 			
 			decimalAdded = false;
 		}
-		
-		// Basic functionality of the calculator is complete. But there are
-		// some problems like
-		// 1. No two operators should be added consecutively
-		// 2. The equation shouldn't start from an operator except minus
-		// 3. Not more than 1 decimal should be there in a number
-		
-		// We'll fix these issues using some simple checks
 		
 		// indexOf works only in IE9+
 		else if (operators.indexOf(btnVal) > -1) {
@@ -70,19 +55,12 @@ for (var i = 0; i < keys.length; i++) {
 			
 			// Replace the last operator (if exists) with the newly pressed operator
 			if (operators.indexOf(lastChar) > -1 && inputVal.length > 1) {
-				// Here '.' matches any characters while $ denotes the end of
-				// string, so anything (will be an operator in this case) at the end of string
-				// will get replaced by new operator
 				input.innerHTML = inputVal.replace(/.$/, btnVal);
 			}
 			
 			decimalAdded = false;
 		}
 		
-		// Now only the decimal problem is left. We can solve it easily using a flag
-		// 'decimalAdded' which we'll set once the decimal is added and prevent
-		// more decimal to be added once it's set. It will be reset when an operator,
-		// eval or clear key is pressed.
 		else if (btnVal == '.') {
 			if (!decimalAdded) {
 				input.innerHTML += btnVal;
@@ -91,10 +69,10 @@ for (var i = 0; i < keys.length; i++) {
 		}
 		
 		// If any other key is pressed, just append it
-		else {
+		else if (disabledBtns.indexOf(e.target.innerHTML) === -1) {
 			input.innerHTML += btnVal;
 		}
-		
+				
 		// Prevent page jumps
 		e.preventDefault();
 	}
@@ -135,4 +113,196 @@ function writeFact() {
 	else {
 		factField.innerHTML = "Please wait...";
 	}
+}
+
+for (var i = 0; i < radioBtns.length; i++) {
+	if (radioBtns[i].id === 'numsystem') {
+		radioBtns[i].onchange = threatNumberSystems;
+	}
+}
+
+function getSelectedRadioBtn(whichGroup) {
+	for (var i = 0; i < radioBtns.length; i++) {
+		if (radioBtns[i].checked) {
+			if (whichGroup === radioBtns[i].id) {
+				return radioBtns[i].value;
+			}			
+		}
+	}
+}
+
+function threatNumberSystems() {
+	var numSystem = getSelectedRadioBtn('numsystem');
+	var screen = input.innerHTML
+	var numbersAndOperators = [];
+	var currentNum = "";
+	var resultScreen = "";
+	
+	for (var i = 0; i < screen.length; i++) {
+		if (isNaN(screen[i]) && screen[i] !== '.') {
+			numbersAndOperators.push(Number(currentNum));
+			numbersAndOperators.push(screen[i]);
+			currentNum = "";
+		}
+		else {
+			currentNum += screen[i];
+		}
+	}
+	
+	if (currentNum) {
+		numbersAndOperators.push(Number(currentNum));
+	}
+		
+	for (var i = 0; i < numbersAndOperators.length; i++) {
+		if (isNaN(numbersAndOperators[i])) {
+			resultScreen += numbersAndOperators[i];
+		}
+		else {
+			if (numSystem === 'binary' && currentNumSystem === 'decimal') {
+				resultScreen += changeDecToOther(numbersAndOperators[i], 2);
+			}
+			else if (numSystem === 'octal' && currentNumSystem === 'decimal') {
+				resultScreen += changeDecToOther(numbersAndOperators[i], 8);
+			}
+			else if (currentNumSystem !== numSystem 
+				&& (currentNumSystem === 'binary' || currentNumSystem === 'octal' || currentNumSystem === 'hexa')
+				&& (numSystem === 'binary' || numSystem === 'octal' || numSystem === 'hexa')) {
+				
+				resultScreen += changeInterBinOctHex(numbersAndOperators[i], numSystem);
+			}
+		}
+	}
+	
+	if (numSystem === 'binary') {
+		disabledBtns = '23456789ABCDEF';
+	}
+	else if (numSystem === 'octal') {
+		disabledBtns = '89ABCDEF';
+	}
+	else if (numSystem === 'decimal') {
+		disabledBtns = 'ABCDEF';
+	}
+	input.innerHTML = resultScreen;
+	currentNumSystem = numSystem;
+	changeDisabledKeyColor();
+}
+
+function changeDecToOther(number, numsys) {
+	var result = "";
+	var integer;
+	var decimal;
+	
+	if (number.toString().indexOf('.') > -1) {
+		number = number.toString();
+		integer = Number(number.substr(0, number.indexOf('.')));
+		decimal = Number('0.' + number.substr(number.indexOf('.') + 1));
+	}
+	else {
+		integer = number;
+	}
+	
+	while (integer != 0) {
+		if (integer % numsys > 0) {
+			var remainder = integer % numsys
+			result = remainder + result;
+			integer = (integer - remainder) / numsys;
+		}
+		else {
+			result = '0' + result;
+			integer = integer / numsys;
+		}
+	}
+	
+	if (decimal) {
+		result += ".";
+		
+		while (decimal != 0) {
+			decimal *= numsys;
+			if (decimal >= 1) {
+				var intPart = decimal.toString().substring(0, decimal.toString().indexOf('.'));
+				if (!intPart) {
+					intPart = decimal;
+				}
+				result += intPart;
+				decimal -= intPart;
+			}
+			else {
+				result += '0';
+			}
+		}
+	}
+	return result;
+}
+
+function changeInterBinOctHex(number, numsys) {
+	var result = '';
+	var resultPart = 0;
+	var numberOfDigits;
+	number = number.toString();
+	
+	if (currentNumSystem === 'binary') {
+		numberOfDigits = numsys === 'hexa' ? 4 : 3;
+		var currentNumPartLong;
+		
+		for (var i = 0; i < number.length; i++) {
+			if (number[i] === '.') {
+				if (resultPart > 9) {
+					result += hexaLetters[resultPart - 10];
+				}
+				else {
+					result += resultPart;
+				}
+				resultPart = 0;
+				result += '.';
+				continue;
+			}
+			else if (number.indexOf('.') > -1 && number.indexOf('.') < i) {
+				currentNumPartLong = (numberOfDigits - (i - 1 - number.indexOf('.'))) % numberOfDigits;
+			}
+			else if (number.indexOf('.') > -1) {
+				currentNumPartLong = number.substring(i, number.indexOf('.')).length % numberOfDigits;
+			}			
+			else {
+				currentNumPartLong = number.substr(i).length % numberOfDigits;
+			}
+			
+			if (currentNumPartLong === 0) {
+				if (resultPart > 9) {
+					result += hexaLetters[resultPart - 10];
+				}
+				else if (result && result[result.length - 1] !== '.' || resultPart) {
+					result += resultPart;
+				}
+				resultPart = 0;
+				if (number[i] === '1') {
+					resultPart += Math.pow(2, numberOfDigits - 1);
+				}
+			}
+			else if (number[i] === '1') {
+				resultPart += Math.pow(2, currentNumPartLong - 1);
+			}
+		}
+		if (resultPart > 9) {
+			result += hexaLetters[resultPart - 10];
+		}
+		else {
+			result += resultPart;
+		}
+	}
+	return result;	
+}
+
+function changeOtherToDec(number) {
+	
+}
+
+function changeDisabledKeyColor() {
+	for (var i = 0; i < keys.length; i++) {
+		if (disabledBtns.indexOf(keys[i].innerHTML) > -1 && keys[i].id !== 'clear') {
+			keys[i].style.backgroundColor = '#AAA';
+		}
+		else if ('0123456789ABCDEF'.indexOf(keys[i].innerHTML) > -1 && keys[i].id !== 'clear') {
+			keys[i].style = null;
+		}
+	}	
 }
