@@ -154,7 +154,7 @@ function threatNumberSystems() {
 	}
 		
 	for (var i = 0; i < numbersAndOperators.length; i++) {
-		var pattern = new RegExp('^[A-F0-9]+$');
+		var pattern = new RegExp('^[A-F0-9.]+$');
 		
 		if (!pattern.test(numbersAndOperators[i])) {
 			resultScreen += numbersAndOperators[i];
@@ -173,11 +173,19 @@ function threatNumberSystems() {
 				&& numSystem == 'decimal') {
 				resultScreen += changeOtherToDec(numbersAndOperators[i]);
 			}
+			else if ((currentNumSystem === 'octal' && numSystem === 'hexa') 
+				|| (currentNumSystem === 'hexa' && numSystem === 'octal')) {
+				
+				numbersAndOperators[i] = changeInterBinOctHex(numbersAndOperators[i], currentNumSystem);
+				currentNumSystem = 'binary';
+				resultScreen += changeInterBinOctHex(numbersAndOperators[i], numSystem);
+				currentNumSystem = numSystem === 'hexa' ? 'octal' : 'hexa';
+			}
 			else if (currentNumSystem !== numSystem 
 				&& (currentNumSystem === 'binary' || currentNumSystem === 'octal' || currentNumSystem === 'hexa')
 				&& (numSystem === 'binary' || numSystem === 'octal' || numSystem === 'hexa')) {
 				
-				resultScreen += changeInterBinOctHex(numbersAndOperators[i], numSystem);
+				resultScreen += changeInterBinOctHex(numbersAndOperators[i], currentNumSystem === 'binary' ? numSystem : currentNumSystem);
 			}
 		}
 	}
@@ -190,6 +198,9 @@ function threatNumberSystems() {
 	}
 	else if (numSystem === 'decimal') {
 		disabledBtns = 'ABCDEF';
+	}
+	else {
+		disabledBtns = '';
 	}
 	input.innerHTML = resultScreen;
 	currentNumSystem = numSystem;
@@ -275,7 +286,7 @@ function changeInterBinOctHex(number, numsys) {
 				continue;
 			}
 			else if (number.indexOf('.') > -1 && number.indexOf('.') < i) {
-				currentNumPartLong = (numberOfDigits - (i - 1 - number.indexOf('.'))) % numberOfDigits;
+				currentNumPartLong = (i * numberOfDigits - (i - 1 - number.indexOf('.'))) % numberOfDigits;
 			}
 			else if (number.indexOf('.') > -1) {
 				currentNumPartLong = number.substring(i, number.indexOf('.')).length % numberOfDigits;
@@ -300,6 +311,7 @@ function changeInterBinOctHex(number, numsys) {
 				resultPart += Math.pow(2, currentNumPartLong - 1);
 			}
 		}
+		
 		if (resultPart > 9) {
 			result += hexaLetters[resultPart - 10];
 		}
@@ -317,11 +329,20 @@ function changeInterBinOctHex(number, numsys) {
 			else {
 				resultPart = number[i];
 			}
+
+			if (resultPart === '.') {
+				result += resultPart;
+				continue;
+			}
 			
 			resultPart = changeDecToOther(resultPart, 2);
-			
-			while (i > 0 && resultPart.toString().length <= numberOfDigits) {
+
+			while (i > 0 && resultPart.toString().length < numberOfDigits) {
 				resultPart = '0' + resultPart;
+			}
+			
+			while (result.indexOf('.') > -1 && i + 1 === number.length && resultPart[resultPart.length - 1] == 0) {
+				resultPart = resultPart.substring(0, resultPart.length - 1);
 			}
 		
 			result += resultPart;
@@ -349,7 +370,7 @@ function changeOtherToDec(number) {
 	if (number.toString().indexOf('.') > -1) {
 		number = number.toString();
 		integer = number.substr(0, number.indexOf('.'));
-		decimal = '0.' + number.substr(number.indexOf('.') + 1);
+		decimal = number.substr(number.indexOf('.') + 1);
 	}
 	else {
 		integer = number;
@@ -365,10 +386,14 @@ function changeOtherToDec(number) {
 	}
 	
 	if (decimal) {
-		result += '.';
 	
 		for (var i = 0; i < decimal.length; i++) {
-			result += integer[i] * Math.pow(numSys, i + 1 * - 1);
+			if (hexaLetters.indexOf(decimal[i]) > -1) {
+				result += (hexaLetters.indexOf(decimal[i]) + 10) * Math.pow(numSys, (i + 1) * -1);
+			}
+			else {
+				result += decimal[i] * Math.pow(numSys, (i + 1) * -1);
+			}
 		}
 	} 
 	return result;
