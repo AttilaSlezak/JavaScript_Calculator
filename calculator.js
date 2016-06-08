@@ -4,7 +4,7 @@ var decimalAdded = false;
 var input = document.querySelector('.screen');
 var factField = document.getElementById('fact');
 var radioBtns = document.querySelectorAll('#calculator input');
-var disabledBtns = '';
+var disabledBtns = 'ABCDEF';
 var currentNumSystem = 'decimal';
 var hexaLetters = ['A', 'B', 'C', 'D', 'E', 'F']
 
@@ -31,10 +31,22 @@ for (var i = 0; i < keys.length; i++) {
 			if (operators.indexOf(lastChar) > -1 || lastChar == '.')
 				equation = equation.replace(/.$/, '');
 			
-			if (equation)
+			if (equation) {				
+				var numSystemBackup;
+				if (currentNumSystem != 'decimal') {
+					numSystemBackup = currentNumSystem;
+					equation = threatNumberSystems('decimal');
+				}
+				
 				input.innerHTML = eval(equation);
 				getFact();
-			
+				
+				if (numSystemBackup) {
+					input.innerHTML = threatNumberSystems(numSystemBackup);
+					numSystemBackup = '';
+				}
+				
+			}
 			decimalAdded = false;
 		}
 		
@@ -131,8 +143,16 @@ function getSelectedRadioBtn(whichGroup) {
 	}
 }
 
-function threatNumberSystems() {
-	var numSystem = getSelectedRadioBtn('numsystem');
+function threatNumberSystems(numsys) {
+	var numSystem;
+	
+	if (typeof numsys === 'string') {
+		numSystem = numsys;
+	}
+	else {
+		numSystem = getSelectedRadioBtn('numsystem');
+	}
+	
 	var screen = input.innerHTML
 	var numbersAndOperators = [];
 	var currentNum = "";
@@ -190,6 +210,12 @@ function threatNumberSystems() {
 		}
 	}
 	
+	currentNumSystem = numSystem;
+	
+	if (typeof numsys === 'string') {
+		return resultScreen;
+	}		
+	
 	if (numSystem === 'binary') {
 		disabledBtns = '23456789ABCDEF';
 	}
@@ -203,7 +229,6 @@ function threatNumberSystems() {
 		disabledBtns = '';
 	}
 	input.innerHTML = resultScreen;
-	currentNumSystem = numSystem;
 	changeDisabledKeyColor();
 }
 
@@ -409,3 +434,4 @@ function changeDisabledKeyColor() {
 		}
 	}	
 }
+changeDisabledKeyColor();

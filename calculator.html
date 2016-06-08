@@ -17,10 +17,15 @@
 			<!-- operators and other keys -->
 			<form id="radiobtns">
 				<div class="radiobtn">
-					<input type="radio" id="request" name="request" value="result" checked />Request result<br />
-					<input type="radio" id="request" name="request" value="batch" />Batch requests
+					<input type="radio" id="request" name="request" value="batch" checked />Batch request<br />
+					<input type="radio" id="request" name="request" value="result" />Request result
 				</div>
-				<div id="verticalLine"></div>
+				<div class="verticalLine"></div>
+				<div class="radiobtn">
+					<input type="radio" id="storage" name="storage" value="local" checked />Local storage<br />
+					<input type="radio" id="storage" name="storage" value="request" />Request always
+				</div>
+				<div class="verticalLine"></div>
 				<div class="radiobtn">
 					<input type="radio" id="numsystem" name="numsystem" value="binary" />Binary<br />
 					<input type="radio" id="numsystem" name="numsystem" value="octal" />Octal
@@ -30,18 +35,26 @@
 					<input type="radio" id="numsystem" name="numsystem" value="hexa" />Hexa
 				</div>
 			</form>
+			<span>A</span>
+			<span>D</span>
 			<span>7</span>
 			<span>8</span>
 			<span>9</span>
 			<span class="operator">+</span>
+			<span>B</span>
+			<span>E</span>
 			<span>4</span>
 			<span>5</span>
 			<span>6</span>
 			<span class="operator">-</span>
+			<span>C</span>
+			<span>F</span>
 			<span>1</span>
 			<span>2</span>
 			<span>3</span>
 			<span class="operator">÷</span>
+			<span class="operator inner">Prim</span>
+			<span class="operator inner">√</span>
 			<span>0</span>
 			<span>.</span>
 			<span class="eval">=</span>

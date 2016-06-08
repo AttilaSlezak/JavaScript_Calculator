@@ -20,7 +20,7 @@ html {
 
 /* Using box shadows to create 3D effects */
 #calculator {
-	width: 325px;
+	width: 471px;
 	height: auto;
 	
 	margin: 100px auto;
@@ -40,7 +40,7 @@ html {
 /* Inset shadow on the screen to create indent */
 .top .screen {
 	height: 40px;
-	width: 212px;
+	width: 358px;
 	
 	float: right;
 	
@@ -97,6 +97,10 @@ html {
 .keys span.operator {
 	background: #FFF0F5;
 	margin-right: 0px;
+}
+
+.keys span.operator.inner {
+	margin-right: 7px;
 }
 
 .keys span.eval {
@@ -159,11 +163,11 @@ html {
 	box-shadow: 0px 4px rgba(0, 0, 0, 0.2);
 }
 
-#request, #numsystem {
+#request, #numsystem, #storage {
 	margin: 4px;
 }
 
-#verticalLine {
+.verticalLine {
 	position: relative;
 	/*top: -20px;*/
 	display: inline-block;
