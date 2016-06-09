@@ -12,14 +12,18 @@ for (var i = 0; i < keys.length; i++) {
 	keys[i].onclick = function(e) {
 		var inputVal = input.innerHTML;
 		var btnVal = this.innerHTML;
-				
-		if (btnVal == 'C') {
+		
+		if (btnVal === 'C') {
 			input.innerHTML = '';
 			factField.innerHTML = 'You can read interesting facts about numbers in this field.';
 			decimalAdded = false;
 		}
 		
-		else if (btnVal == '=') {
+		else if (btnVal === '&lt;&lt;') {
+			input.innerHTML = input.innerHTML.substring(0, input.innerHTML.length - 1);
+		}
+		
+		else if (btnVal === '=') {
 			var equation = inputVal;
 			var lastChar = equation[equation.length - 1];
 			
@@ -125,7 +129,7 @@ function getFact(equation) {
 		if (request.readyState == XMLHttpRequest.DONE) {
 			if (request.status == 200) {
 				var response = JSON.parse(request.responseText);
-				//alert(response[1].text);
+
 				if (mode === 'batch') {
 					factField.innerHTML = '<span class="factHeader">Fact about the result:</span><span class="fact">' 
 					+ response[input.innerHTML].text + '</span><br />';
@@ -143,6 +147,7 @@ function getFact(equation) {
 						}
 						factField.innerHTML += '<span class="fact">' + response[batchNumbers[2][i]].text + '</span><br />';
 					}
+					factField.innerHTML += '<br /><br />';
 				}
 				else {
 					factField.innerHTML = response.text;

@@ -24,6 +24,7 @@ html {
 	height: auto;
 	
 	margin: 100px auto;
+	margin-bottom: 60px;
 	padding: 20px 20px 9px;
 	
 	background: #9DD2EA;
@@ -152,17 +153,24 @@ html {
  }
  
 #facts {
+	margin: auto;
+	display: table;
+	width: auto;
+	height: auto;
+	padding: 50px;
+	border-radius: 50%;
 	text-align: center;
+	background-color: rgba(205, 205, 0, 0.35);
 }
 
 .fact {
-	font-style: italic;	
+	font-style: italic;
+	margin-bottom: 15px;
 }
 
 .factHeader {
 	display: block;
 	margin: 10px;
-	/*font-style: italic;*/
 	color: crimson;
 }
 
