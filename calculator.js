@@ -23,7 +23,7 @@ for (var i = 0; i < keys.length; i++) {
 			input.innerHTML = input.innerHTML.substring(0, input.innerHTML.length - 1);
 		}
 		
-		else if (btnVal === '=') {
+		else if (btnVal === '=' || btnVal === 'Prime') {
 			var equation = inputVal;
 			var lastChar = equation[equation.length - 1];
 			
@@ -44,6 +44,10 @@ for (var i = 0; i < keys.length; i++) {
 				
 				input.innerHTML = eval(equation);
 				getFact(equation);
+				
+				if (btnVal === 'Prime') {
+					input.innerHTML = getPrimeFactors();
+				}
 				
 				if (numSystemBackup) {
 					input.innerHTML = threatNumberSystems(numSystemBackup);
@@ -122,7 +126,7 @@ function getFact(equation) {
 	}
 	
 	request.onreadystatechange = writeFact;
-	request.open('GET', 'http://numbersapi.com/' + numbersToGet + '?json');
+	request.open('GET', 'http://numbersapi.com/' + numbersToGet + '?json', false);
 	request.send();
 
 	function writeFact() {
@@ -540,6 +544,27 @@ function changeOtherToDec(number) {
 			}
 		}
 	} 
+	return result;
+}
+
+function getPrimeFactors() {
+	var number = input.innerHTML;
+	var result = '';
+	var candidate = 2;
+	
+	while (number > 1) {
+		if (number % candidate === 0) {
+			result += result === '' ? candidate : '*' + candidate;
+			number /= candidate;
+		}
+		else {
+			candidate++;
+		}
+	}
+	if (result === input.innerHTML) {
+		result = '1*' + input.innerHTML
+	}
+	
 	return result;
 }
 
