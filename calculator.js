@@ -2,7 +2,7 @@
 var operators = ['+', '-', 'x', '÷']
 var decimalAdded = false;
 var input = document.querySelector('.screen');
-var factField = document.getElementById('fact');
+var factField = document.getElementById('facts');
 var radioBtns = document.querySelectorAll('#calculator input');
 var disabledBtns = 'ABCDEF';
 var currentNumSystem = 'decimal';
@@ -94,10 +94,12 @@ var request;
 
 function getFact(equation) {
 	var mode = getSelectedRadioBtn('request');
-	var numbersToGet;
+	var batchNumbers = [];
+	var numbersToGet = '';
 	
 	if (mode === 'batch') {
-		numbersToGet = getBatchNumbers(equation);
+		batchNumbers = getBatchNumbers(equation);
+		numbersToGet = batchNumbers[0];
 	}
 	else {
 		numbersToGet = input.innerHTML;
@@ -118,20 +120,41 @@ function getFact(equation) {
 	request.onreadystatechange = writeFact;
 	request.open('GET', 'http://numbersapi.com/' + numbersToGet + '?json');
 	request.send();
-}
 
-function writeFact() {
-	if (request.readyState == XMLHttpRequest.DONE) {
-		if (request.status == 200) {
-			var response = request.responseText;
-			factField.innerHTML = JSON.parse(response).text;
+	function writeFact() {
+		if (request.readyState == XMLHttpRequest.DONE) {
+			if (request.status == 200) {
+				var response = JSON.parse(request.responseText);
+				//alert(response[1].text);
+				if (mode === 'batch') {
+					factField.innerHTML = '<span class="factHeader">Fact about the result:</span><span class="fact">' 
+					+ response[input.innerHTML].text + '</span><br />';
+					
+					for (var i = 0; i < batchNumbers[1].length; i++) {
+						if (i === 0) {
+							factField.innerHTML += '<span class="factHeader">Facts about the digits in the result:</span>';
+						}
+						factField.innerHTML += '<span class="fact">' + response[batchNumbers[1][i]].text + '</span><br />';
+					}
+					
+					for (var i = 0; i < batchNumbers[2].length; i++) {
+						if (i === 0) {
+							factField.innerHTML += '<span class="factHeader">Facts about the numbers in the equation:</span>';
+						}
+						factField.innerHTML += '<span class="fact">' + response[batchNumbers[2][i]].text + '</span><br />';
+					}
+				}
+				else {
+					factField.innerHTML = response.text;
+				}
+			}
+			else {
+				factField.innerHTML = 'There is no response from the server...';
+			}
 		}
 		else {
-			factField.innerHTML = "There is no response from the server...";
+			factField.innerHTML = 'Please wait...';
 		}
-	}
-	else {
-		factField.innerHTML = "Please wait...";
 	}
 }
 
@@ -185,7 +208,6 @@ function getBatchNumbers(equation) {
 	resultEquationNums.sort(compareNumbers);
 	
 	for (var i = 0; i < resultList.length; i++) {
-		alert((Number(resultList[i]) + 1) +' === '+ Number(resultList[i+1]));
 		if (i === 0) {
 			resultStr += resultList[i];
 		}
@@ -198,12 +220,9 @@ function getBatchNumbers(equation) {
 		else if (resultStr[resultStr.length - 1] !== '.') {
 			resultStr += ',' + resultList[i];
 		}
-		alert(resultStr);
 	}
 	
 	Array.prototype.push.apply(result, [resultStr, resultDigits, resultEquationNums]);
-
-	alert(result);
 
 	return result;
 }

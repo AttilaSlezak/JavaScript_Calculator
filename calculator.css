@@ -151,8 +151,19 @@ html {
 	 box-shadow: 0px 0px #D3545D;
  }
  
-#fact {
+#facts {
 	text-align: center;
+}
+
+.fact {
+	font-style: italic;	
+}
+
+.factHeader {
+	display: block;
+	margin: 10px;
+	/*font-style: italic;*/
+	color: crimson;
 }
 
 #radiobtns {
