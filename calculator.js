@@ -39,7 +39,7 @@ for (var i = 0; i < keys.length; i++) {
 				}
 				
 				input.innerHTML = eval(equation);
-				getFact();
+				getFact(equation);
 				
 				if (numSystemBackup) {
 					input.innerHTML = threatNumberSystems(numSystemBackup);
@@ -92,8 +92,16 @@ for (var i = 0; i < keys.length; i++) {
 
 var request;
 
-function getFact() {
-	var number = input.innerHTML;
+function getFact(equation) {
+	var mode = getSelectedRadioBtn('request');
+	var numbersToGet;
+	
+	if (mode === 'batch') {
+		numbersToGet = getBatchNumbers(equation);
+	}
+	else {
+		numbersToGet = input.innerHTML;
+	}
 	
 	if (input.innerHTML.indexOf('.') > -1) {
 		factField.innerHTML = "There is not any facts available about decimal numbers.";
@@ -108,7 +116,7 @@ function getFact() {
 	}
 	
 	request.onreadystatechange = writeFact;
-	request.open('GET', 'http://numbersapi.com/' + number + '?json');
+	request.open('GET', 'http://numbersapi.com/' + numbersToGet + '?json');
 	request.send();
 }
 
@@ -124,6 +132,93 @@ function writeFact() {
 	}
 	else {
 		factField.innerHTML = "Please wait...";
+	}
+}
+
+function getBatchNumbers(equation) {
+	var result = [];
+	var resultStr = '';
+	var resultList = [];
+	var resultDigits = [];
+	var resultEquationNums = [];
+	var screen = input.innerHTML;
+	
+	for (var i = 0; i < screen.length; i++) {
+
+		if (!isNaN(screen[i]) && resultList.indexOf(screen[i]) === -1) {
+			resultList.push(screen[i]);
+		}
+	}
+
+	resultDigits = resultList.sort().slice();
+	resultList.push(screen);
+	
+	var resultPart = '';
+	
+	for (var i = 0; i < equation.length; i++) {
+		var isFloat = false;
+		
+		if (!isNaN(equation[i]) && !isFloat) {
+			resultPart += equation[i];
+		}
+		else if (equation[i] === '.') {
+			resultList.push(resultPart);
+			resultEquationNums.push(resultPart);
+			resultPart = '';
+			isFloat = true;
+		}
+		else if (isNaN(equation[i]) && equation !== '.') {
+			if (!isFloat) {
+				resultList.push(resultPart);
+				resultEquationNums.push(resultPart);
+			}
+			resultPart = '';
+			isFloat = false;
+		}
+	}
+	if (resultPart) {
+		resultList.push(resultPart);
+		resultEquationNums.push(resultPart);
+	}
+	
+	resultList.sort(compareNumbers);
+	resultEquationNums.sort(compareNumbers);
+	
+	for (var i = 0; i < resultList.length; i++) {
+		alert((Number(resultList[i]) + 1) +' === '+ Number(resultList[i+1]));
+		if (i === 0) {
+			resultStr += resultList[i];
+		}
+		else if (resultStr[resultStr.length - 1] !== '.' && Number(resultList[i-1]) + 1 === Number(resultList[i])) {
+			resultStr += '..';
+		}
+		else if (resultStr[resultStr.length - 1] === '.' && Number(resultList[i-1]) + 1 !== Number(resultList[i])) {
+			resultStr += resultList[i-1] + ',' + resultList[i];
+		}
+		else if (resultStr[resultStr.length - 1] !== '.') {
+			resultStr += ',' + resultList[i];
+		}
+		alert(resultStr);
+	}
+	
+	Array.prototype.push.apply(result, [resultStr, resultDigits, resultEquationNums]);
+
+	alert(result);
+
+	return result;
+}
+
+function compareNumbers(first, second) {
+	first = Number(first);
+	second = Number(second);
+	if (first > second) {
+		return 1;
+	}
+	else if (first < second) {
+		return -1;
+	}
+	else {
+		return 0;
 	}
 }
 
