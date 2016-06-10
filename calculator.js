@@ -8,6 +8,12 @@ var disabledBtns = 'ABCDEF';
 var currentNumSystem = 'decimal';
 var hexaLetters = ['A', 'B', 'C', 'D', 'E', 'F']
 
+/*for (var key in localStorage){
+	alert(key);
+	alert(localStorage[key]);
+}
+localStorage.clear();*/
+
 for (var i = 0; i < keys.length; i++) {
 	keys[i].onclick = function(e) {
 		var inputVal = input.innerHTML;
@@ -124,7 +130,6 @@ function getFact(equation) {
 	else {
 		request = new ActiveXObject('Microsoft.XMLHTTP');
 	}
-	
 	request.onreadystatechange = writeFact;
 	request.open('GET', 'http://numbersapi.com/' + numbersToGet + '?json', false);
 	request.send();
@@ -132,29 +137,57 @@ function getFact(equation) {
 	function writeFact() {
 		if (request.readyState == XMLHttpRequest.DONE) {
 			if (request.status == 200) {
-				var response = JSON.parse(request.responseText);
-
-				if (mode === 'batch') {
-					factField.innerHTML = '<span class="factHeader">Fact about the result:</span><span class="fact">' 
-					+ response[input.innerHTML].text + '</span><br />';
+				var response = {};
+				if (numbersToGet) {
+					response = JSON.parse(request.responseText);
+				}
+				
+				if (mode === 'batch' && !response.hasOwnProperty('text')) {
+					factField.innerHTML = '<span class="factHeader">Fact about the result:</span>';
+					if (getSelectedRadioBtn('storage') === 'local' && localStorage.getItem(input.innerHTML) !== null) {
+						factField.innerHTML += '<span class="fact">' + localStorage.getItem(input.innerHTML) + '</span><br />';
+					}
+					else {
+						factField.innerHTML += '<span class="fact">' + response[input.innerHTML].text + '</span><br />';
+						if (getSelectedRadioBtn('storage') === 'local') {
+							localStorage.setItem(input.innerHTML, response[input.innerHTML].text);
+						}
+					}
 					
-					for (var i = 0; i < batchNumbers[1].length; i++) {
-						if (i === 0) {
+					for (var i = 0, j = 1; i < batchNumbers[j].length; i++) {
+						if (i === 0 && j === 1) {
 							factField.innerHTML += '<span class="factHeader">Facts about the digits in the result:</span>';
 						}
-						factField.innerHTML += '<span class="fact">' + response[batchNumbers[1][i]].text + '</span><br />';
-					}
-					
-					for (var i = 0; i < batchNumbers[2].length; i++) {
-						if (i === 0) {
+						else if (i === 0 && j === 2) {
 							factField.innerHTML += '<span class="factHeader">Facts about the numbers in the equation:</span>';
 						}
-						factField.innerHTML += '<span class="fact">' + response[batchNumbers[2][i]].text + '</span><br />';
+						if (getSelectedRadioBtn('storage') === 'local' && localStorage.getItem(batchNumbers[j][i]) !== null) {
+							factField.innerHTML += '<span class="fact">' + localStorage.getItem(batchNumbers[j][i]) + '</span><br />';
+						}
+						else {
+							factField.innerHTML += '<span class="fact">' + response[batchNumbers[j][i]].text + '</span><br />';						
+							if (getSelectedRadioBtn('storage') === 'local') {
+								localStorage.setItem(batchNumbers[j][i], response[batchNumbers[j][i]].text);
+							}
+						}
+						if (j === 1 && i + 1 === batchNumbers[j].length) {
+							i = -1;
+							j++;
+						}
 					}
+					
 					factField.innerHTML += '<br /><br />';
 				}
 				else {
-					factField.innerHTML = response.text;
+					if (getSelectedRadioBtn('storage') === 'local' && localStorage.getItem(input.innerHTML) !== null) {
+						factField.innerHTML = localStorage.getItem(input.innerHTML);
+					}
+					else {
+						factField.innerHTML = response.text;
+						if (getSelectedRadioBtn('storage') === 'local') {
+							localStorage.setItem(factField.innerHTML, response.text);
+						}
+					}
 				}
 			}
 			else {
@@ -176,14 +209,19 @@ function getBatchNumbers(equation) {
 	var screen = input.innerHTML;
 	
 	for (var i = 0; i < screen.length; i++) {
-
-		if (!isNaN(screen[i]) && resultList.indexOf(screen[i]) === -1) {
+		if (getSelectedRadioBtn('storage') === 'local' && localStorage.getItem(screen[i]) !== null) {
+			resultDigits.push(screen[i]);
+		}
+		else if (!isNaN(screen[i]) && resultList.indexOf(screen[i]) === -1) {
+			resultDigits.push(screen[i]);
 			resultList.push(screen[i]);
 		}
 	}
 
-	resultDigits = resultList.sort().slice();
-	resultList.push(screen);
+	resultList.sort(compareNumbers);
+	if (getSelectedRadioBtn('storage') !== 'local' || localStorage.getItem(screen) === null) {
+		resultList.push(screen);
+	}
 	
 	var resultPart = '';
 	
@@ -194,30 +232,37 @@ function getBatchNumbers(equation) {
 			resultPart += equation[i];
 		}
 		else if (equation[i] === '.') {
-			resultList.push(resultPart);
+			if (getSelectedRadioBtn('storage') !== 'local' || localStorage.getItem(resultPart) === null) {
+				resultList.push(resultPart);
+			}
 			resultEquationNums.push(resultPart);
 			resultPart = '';
 			isFloat = true;
 		}
 		else if (isNaN(equation[i]) && equation !== '.') {
-			if (!isFloat) {
+			if (!isFloat && (getSelectedRadioBtn('storage') !== 'local' || localStorage.getItem(resultPart) === null)) {
 				resultList.push(resultPart);
-				resultEquationNums.push(resultPart);
 			}
+			resultEquationNums.push(resultPart);
 			resultPart = '';
 			isFloat = false;
 		}
 	}
-	if (resultPart) {
+	if (resultPart && (getSelectedRadioBtn('storage') !== 'local' || localStorage.getItem(resultPart) === null)) {
 		resultList.push(resultPart);
-		resultEquationNums.push(resultPart);
 	}
+	resultEquationNums.push(resultPart);
 	
-	resultList.sort(compareNumbers);
+	//resultList.sort(compareNumbers);
+	resultDigits.sort(compareNumbers);
 	resultEquationNums.sort(compareNumbers);
 	
 	for (var i = 0; i < resultList.length; i++) {
-		if (i === 0) {
+		if (i !== 0 && resultList[i] === resultList[i - 1]) {
+			continue;
+		}
+		
+		if (resultStr === '') {
 			resultStr += resultList[i];
 		}
 		else if (resultStr[resultStr.length - 1] !== '.' && Number(resultList[i-1]) + 1 === Number(resultList[i])) {
